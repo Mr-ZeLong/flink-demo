@@ -68,6 +68,7 @@ class FlinkDemoApplicationTests {
     public void testKafkaSource() throws Exception {
         // 生产消息
         new Thread(() -> {
+
             for (int i = 0; i < 100; i++) {
                 kafkaProducer.sendMessage("test", "hello world " + i);
                 try {

@@ -87,6 +87,7 @@ class FlinkDemoApplicationTests {
                 .setValueOnlyDeserializer(new SimpleStringSchema())
                 .build();
 
+
         env.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "kafka-source")
                         .print();
 

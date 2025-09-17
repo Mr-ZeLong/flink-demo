@@ -17,6 +17,7 @@ public class KafkaTest {
     public void test() throws InterruptedException {
         String topic = "test";
         String message = "hello, kafka";
+
         for(int i = 0; i < 100; i++){
             producer.sendMessage(topic, message);
             Thread.sleep(2000);

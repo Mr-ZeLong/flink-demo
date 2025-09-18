@@ -63,7 +63,6 @@ class FlinkDemoApplicationTests {
 
     @Resource
     private KafkaProducer kafkaProducer;
-
     @Test
     public void testKafkaSource() throws Exception {
         // 生产消息

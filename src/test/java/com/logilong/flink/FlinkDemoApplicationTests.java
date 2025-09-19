@@ -4,6 +4,7 @@ import com.logilong.flink.producer.KafkaProducer;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.common.typeinfo.Types;
@@ -91,6 +92,11 @@ class FlinkDemoApplicationTests {
                         .print();
 
         env.execute();
+    }
+
+    @Test
+    public void test() throws Exception {
+
     }
 
 }

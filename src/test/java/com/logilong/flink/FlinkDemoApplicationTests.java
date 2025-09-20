@@ -2,11 +2,17 @@ package com.logilong.flink;
 
 import com.logilong.flink.producer.KafkaProducer;
 import jakarta.annotation.Resource;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
-import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.api.common.state.BroadcastState;
+import org.apache.flink.api.common.state.MapStateDescriptor;
+import org.apache.flink.api.common.state.MapState;
+import org.apache.flink.api.common.state.ReadOnlyBroadcastState;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -15,9 +21,18 @@ import org.apache.flink.connector.file.src.reader.TextLineInputFormat;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.core.fs.Path;
+import org.apache.flink.streaming.api.datastream.BroadcastStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSource;
+import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.co.BroadcastProcessFunction;
+import org.apache.flink.streaming.api.functions.co.KeyedCoProcessFunction;
+import org.apache.flink.util.Collector;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import java.io.Serial;
+import java.io.Serializable;
 
 @SpringBootTest
 @Slf4j
@@ -95,8 +110,80 @@ class FlinkDemoApplicationTests {
     }
 
     @Test
-    public void test() throws Exception {
+    public void unionTest() throws Exception {
+        KeyedStream<Tuple2<String, Integer>, String> keyStream1 = env.fromData(Tuple2.of("hello", 1), Tuple2.of("world", 1), Tuple2.of("hello", 1))
+                .keyBy(kv -> kv.f0);
 
+        KeyedStream<Tuple2<String, Integer>, String> keyStream2 = env.fromData(Tuple2.of("hello", 1), Tuple2.of("flink", 1), Tuple2.of("flink", 1))
+                .keyBy(kv -> kv.f0);
+
+        // union 后前面的 keyBy 就失效了，需要重新 keyBy
+        keyStream1.union(keyStream2)
+                        .keyBy(kv -> kv.f0)
+                .reduce((a, b) -> Tuple2.of(a.f0, a.f1 + b.f1))
+                        .print();
+
+        env.execute();
     }
 
+    @Test
+    public void connectCoProcessTest() throws Exception{
+        User user1 = new User(1L, "张三", 0), user2 = new User(2L, "李四", 0);
+        Order order1 = new Order(1L, 1L, "待支付"), order2 = new Order(2L, 2L, "待支付");
+
+        MapStateDescriptor<Long, User> descriptor = new MapStateDescriptor<>("userInfoState", Long.class, User.class);
+        BroadcastStream<User> broadcastStream = env.fromData(user1, user2)
+                .broadcast(descriptor);
+
+        env.fromData(order1, order2)
+                .connect(broadcastStream)
+                        .process(new BroadcastProcessFunction<Order, User, OrderInfo>() {
+                            @Override
+                            public void processElement(Order value, BroadcastProcessFunction<Order, User, OrderInfo>.ReadOnlyContext ctx, Collector<OrderInfo> out) throws Exception {
+                                ReadOnlyBroadcastState<Long, User> broadcastState = ctx.getBroadcastState(descriptor);
+                                out.collect(new OrderInfo(value.getOrderId(), broadcastState.get(value.getUserId()), value.getStatus()));
+                            }
+
+                            @Override
+                            public void processBroadcastElement(User value, BroadcastProcessFunction<Order, User, OrderInfo>.Context ctx, Collector<OrderInfo> out) throws Exception {
+                                BroadcastState<Long, User> broadcastState = ctx.getBroadcastState(descriptor);
+                                broadcastState.put(value.getUserId(), value);
+                            }
+                        })
+                .keyBy(orderInfo -> orderInfo.getUser().getGender())
+                .print();
+
+        env.execute();
+    }
+
+}
+
+@Data
+@AllArgsConstructor
+class OrderInfo implements Serializable{
+    @Serial
+    private static final long serialVersionUID = 134665467L;
+    private Long orderId;
+    private User user;
+    private String status;
+}
+
+
+@Data
+@AllArgsConstructor
+class Order implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 134665234467L;
+    private Long orderId;
+    private Long userId;
+    private String status;
+}
+@Data
+@AllArgsConstructor
+class User implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 123434665467L;
+    private Long userId;
+    private String name;
+    private Integer gender;
 }

@@ -15,3 +15,7 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 # 更多其他配置可根据需要添加
+logging:
+  level:
+    root: ERROR
+    org.apache.flink: ERROR

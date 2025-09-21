@@ -143,7 +143,6 @@ class FlinkDemoApplicationTests {
                                 ReadOnlyBroadcastState<Long, User> broadcastState = ctx.getBroadcastState(descriptor);
                                 out.collect(new OrderInfo(value.getOrderId(), broadcastState.get(value.getUserId()), value.getStatus()));
                             }
-
                             @Override
                             public void processBroadcastElement(User value, BroadcastProcessFunction<Order, User, OrderInfo>.Context ctx, Collector<OrderInfo> out) throws Exception {
                                 BroadcastState<Long, User> broadcastState = ctx.getBroadcastState(descriptor);
@@ -155,6 +154,8 @@ class FlinkDemoApplicationTests {
 
         env.execute();
     }
+
+
 
 }
 

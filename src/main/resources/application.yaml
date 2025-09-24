@@ -5,7 +5,7 @@ spring:
     # 根据你的 Docker 网络配置填写。
     # 如果 Spring Boot 应用在宿主机上运行，且 Kafka 容器映射了端口到宿主机，通常使用 localhost:9092
     # 如果应用也在 Docker 容器中，172.28.254.108且与 Kafka 在同一 Docker network (kafka-net) 下，则使用 kafka-kraft-single:9092
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: 172.28.254.108:9092
     consumer:
       group-id: test-consumer-group # 消费者组 ID，按需修改
       auto-offset-reset: earliest # 当无初始偏移量或偏移量失效时，从最早的消息开始消费
@@ -14,6 +14,11 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+  data:
+    redis:
+      host: 127.0.0.1        # Redis服务器地址
+      port: 6379             # 端口
+      database: 0            # 数据库索引
 # 更多其他配置可根据需要添加
 logging:
   level:

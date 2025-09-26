@@ -90,7 +90,7 @@ public class SQLTest {
                 "    ,sum(case when behavior_type = 'share' then 1 else 0 end) as share_count\n" +
                 "    ,sum(case when behavior_type = 'comment' then 1 else 0 end) as comment_count\n" +
                 "    ,sum(case when behavior_type = 'click_product' then 1 else 0 end) as click_product_count\n" +
-                "from table(tumble(table live_user_behavior, descriptor(event_time), interval '5' minute))\n" +
+                "from table(tumble(table live_user_behavior, descriptor(event_time), interval '5' minute, ALLOWED_LATENESS => INTERVAL '2' MINUTE))\n" +
                 "group by\n" +
                 "     room_id\n" +
                 "    ,window_start\n" +

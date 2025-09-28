@@ -65,6 +65,7 @@ public class SQLTest {
                     // 每隔0.5秒发送一条数据
                     Thread.sleep(500);
                 } catch (InterruptedException | JSONException e) {
+
                     Thread.currentThread().interrupt();
                     break;
                 }

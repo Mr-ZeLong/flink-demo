@@ -61,6 +61,7 @@ public class SQLTest {
                     }
                     jsonObject.put("behavior_time", System.currentTimeMillis() + 1000 - random.nextInt(2000));
                     // 发送数据到Kafka
+
                     kafkaProducer.sendMessage("live_user_behavior", jsonObject.toString());
                     // 每隔0.5秒发送一条数据
                     Thread.sleep(500);

@@ -68,6 +68,7 @@ public class SQLTest {
                 } catch (InterruptedException | JSONException e) {
                     Thread.currentThread().interrupt();
                     break;
+
                 }
             }
         }).start();

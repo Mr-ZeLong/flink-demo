@@ -116,6 +116,7 @@ public class SQLTest {
                 "    ,window_start\n" +
                 "    ,window_end").execute().collect().forEachRemaining(row -> {
                     redisTemplate.opsForValue().set(row.getFieldAs(0) + "_" + "online_cnt", row.getFieldAs(3));
+
         });
     }
 
